@@ -59,9 +59,9 @@ With real-time syncing, dark mode, and a clean UI, staying on top of your daily 
 
 ---
 
-<img width="739" height="1600" alt="image" src="https://github.com/user-attachments/assets/be33e78c-67fd-4878-8b42-2fe579d91c59" />
-<img width="739" height="1600" alt="image" src="https://github.com/user-attachments/assets/20fc5609-6915-43e6-a9c4-f43d406e2e8a" />
-<img width="739" height="1600" alt="image" src="https://github.com/user-attachments/assets/0a4029d2-f885-4ba8-8528-f364e484791f" />
+<img width="400" height="1600" alt="image" src="https://github.com/user-attachments/assets/be33e78c-67fd-4878-8b42-2fe579d91c59" />
+<img width="400" height="1600" alt="image" src="https://github.com/user-attachments/assets/20fc5609-6915-43e6-a9c4-f43d406e2e8a" />
+<img width="400" height="1600" alt="image" src="https://github.com/user-attachments/assets/0a4029d2-f885-4ba8-8528-f364e484791f" />
 
 
 
