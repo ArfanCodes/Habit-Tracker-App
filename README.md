@@ -28,7 +28,7 @@ With real-time syncing, dark mode, and a clean UI, staying on top of your daily 
 - 🚀 **User Authentication** – Sign up, sign in, and manage sessions with Appwrite authentication.  
 
 
-
+## 📸 Screenshots
 ---
 
 <img width="400" height="1600" alt="image" src="https://github.com/user-attachments/assets/be33e78c-67fd-4878-8b42-2fe579d91c59" />
