@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "React-Practice",
-    "slug": "React-Practice",
+    "name": "Habit-Tracker",
+    "slug": "Habit-Tracker",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.habit.myapp"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5a527093-8b3c-45c3-b3a3-356263cf956c"
+      }
     }
   }
 }
