@@ -1,20 +1,20 @@
-# 📌 Habit Tracker App
+# 📱 Habit Tracker App  
 
 A simple and interactive **Habit Tracker App** built with **React Native** and powered by **Appwrite**.  
-This app helps you build consistency, stay motivated, and visualize your progress through streaks.  
-With real-time syncing, dark mode, and a clean UI, staying on top of your daily routines has never been easier!  
+Stay consistent, motivated, and visualize your progress through streaks.  
+With **real-time syncing**, **dark mode**, and a **minimal clean UI**, staying on top of your daily routines has never been easier!  
 
 ---
 
-## ⚙️ Tech Stack
+## ⚙️ Tech Stack  
 
-- **React Native** – For building native apps  
-- **Expo** – For simplifying the React Native development  
-- **Appwrite** – For backend and real-time database  
-- **TailwindCSS** – For styling the app with utility-first CSS  
-- **React Hooks** – For managing component state and side-effects  
-- **TypeScript (optional)** – Type safety and tooling  
-- **GitHub & Vercel** – Deployment (for web versions if applicable)  
+🚀 Built with modern tools:  
+- ⚛️ **React Native** – cross-platform app development  
+- 📦 **Expo** – smooth development & deployment  
+- 🗄️ **Appwrite** – backend as a service (authentication + database)  
+- 🎨 **TailwindCSS** – utility-first styling  
+- 🪝 **React Hooks** – state & lifecycle management  
+- 📝 **TypeScript (optional)** – type safety  
 
 ---
 
