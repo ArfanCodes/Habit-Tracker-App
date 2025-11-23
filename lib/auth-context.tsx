@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useState } from "react";
-import { ID, Models } from "react-native-appwrite";
+import { AppwriteException, ID, Models } from "react-native-appwrite";
 import { account } from "./appwrite";
 
 type AuthContextType = {
@@ -39,6 +39,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const clearExistingSession = async () => {
+    try {
+      await account.deleteSession("current");
+    } catch (error) {
+      if (
+        error instanceof AppwriteException &&
+        (error.code === 404 || error.code === 401)
+      ) {
+        return; // no active session to clear
+      }
+
+      console.warn("Failed to clear existing Appwrite session", error);
+    }
+  };
+
   const signUp = async (email: string, password: string) => {
     try {
       await account.create(ID.unique(), email, password);
@@ -54,13 +69,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
   const signIn = async (email: string, password: string) => {
     try {
+      await clearExistingSession();
       await account.createEmailPasswordSession(email, password);
       const loggedInUser = await account.get();
       setUser(loggedInUser);
       return null;
     } catch (error) {
-      // THIS IS THE IMPORTANT PART
-      console.error("Sign-in failed:", error); // Log the specific error from Appwrite
+      if (error instanceof AppwriteException && error.code === 409) {
+        try {
+          const loggedInUser = await account.get();
+          setUser(loggedInUser);
+          return null;
+        } catch (reuseError) {
+          console.error("Failed to reuse existing Appwrite session", reuseError);
+        }
+      }
 
       setUser(null);
       if (error instanceof Error) {

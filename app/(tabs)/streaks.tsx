@@ -8,16 +8,19 @@ import {
 } from "@/lib/appwrite";
 import { useAuth } from "@/lib/auth-context";
 import { Habit, HabitCompletion } from "@/types/database.type";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { Query } from "react-native-appwrite";
 import { ScrollView } from "react-native-gesture-handler";
 import { Card, Text } from "react-native-paper";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function StreaksScreen() {
   const [habits, setHabits] = useState<Habit[]>([]);
   const [completedHabits, setCompletedHabits] = useState<HabitCompletion[]>([]);
   const { user } = useAuth();
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     if (user) {
@@ -154,97 +157,212 @@ export default function StreaksScreen() {
   });
 
   const rankedHabits = habitStreaks.sort((a, b) => b.bestStreak - a.bestStreak);
-  const badgeStyles = [styles.badge1, styles.badge2, styles.badge3];
+  const topRankedHabits = rankedHabits.slice(0, 3);
+  const rankingIcons = ["🥇", "🥈", "🥉"];
+  const hasHabits = rankedHabits.length > 0;
+
+  const getTrendIndicator = (current: number, best: number) => {
+    if (current === 0) return null;
+    if (current >= best) {
+      return { name: "arrow-up-bold" as const, color: "#4CAF50" };
+    }
+    if (current < best) {
+      return { name: "arrow-down-bold" as const, color: "#FF6B6B" };
+    }
+    return null;
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title} variant="headlineSmall">
-        Habit Streaks
-      </Text>
-      {rankedHabits.length > 0 && (
-        <View style={styles.rankingContainer}>
-          <Text style={styles.rankingTitle}>🏅 Top Streaks </Text>
-          {rankedHabits.slice(0, 3).map((item, key) => (
-            <View key={item.habit.$id} style={styles.rankingRow}>
-              <View style={[styles.rankingBadge, badgeStyles[key]]}>
-                <Text style={styles.rankingBadgeText}>{key + 1}</Text>
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.content}>
+        <View style={styles.header}>
+          <Text style={styles.title} variant="headlineSmall">
+            Habit Streaks
+          </Text>
+          <Text style={styles.subtitle}>Your habit progress at a glance</Text>
+        </View>
+
+        {hasHabits ? (
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            style={styles.scrollArea}
+            contentContainerStyle={[
+              styles.scrollContent,
+              { paddingBottom: insets.bottom + 120 },
+            ]}
+          >
+            <View style={styles.listInner}>
+              <View style={styles.rankingContainer}>
+                <Text style={styles.rankingTitle}>🏅 Top Streaks </Text>
+                {topRankedHabits.map((item, key) => (
+                  <View key={item.habit.$id}>
+                    <View style={styles.rankingRow}>
+                      <View style={styles.rankingIconWrapper}>
+                        <Text style={styles.rankingIcon}>{rankingIcons[key]}</Text>
+                      </View>
+                      <View style={styles.rankingInfo}>
+                        <Text style={styles.rankingHabit}>{item.habit.title}</Text>
+                        <Text style={styles.rankingSmallLabel}>Best streak</Text>
+                      </View>
+                      <Text style={styles.rankingStreak}>{item.bestStreak}</Text>
+                    </View>
+                    {key < topRankedHabits.length - 1 && (
+                      <View style={styles.rankingDivider} />
+                    )}
+                  </View>
+                ))}
               </View>
-              <Text style={styles.rankingHabit}>{item.habit.title}</Text>
-              <Text style={styles.rankingStreak}>{item.bestStreak}</Text>
+
+              {rankedHabits.map(({ habit, streak, bestStreak, total }) => (
+                <Card
+                  key={habit.$id}
+                  style={[
+                    styles.card,
+                    rankedHabits[0].habit.$id === habit.$id && styles.firstCard,
+                  ]}
+                >
+                  <Card.Content>
+                    <Text variant="titleMedium" style={styles.habitTitle}>
+                      {habit.title}
+                    </Text>
+                    <Text style={styles.habitDescription}>{habit.description}</Text>
+                    <View style={styles.statsRow}>
+                      {[
+                        {
+                          label: "Current",
+                          value: streak,
+                          icon: "fire",
+                          tint: "rgba(255,152,0,0.12)",
+                          iconColor: "#FF9800",
+                          trend: getTrendIndicator(streak, bestStreak),
+                        },
+                        {
+                          label: "Best",
+                          value: bestStreak,
+                          icon: "crown-outline",
+                          tint: "rgba(255,214,0,0.12)",
+                          iconColor: "#C9A128",
+                        },
+                        {
+                          label: "Total",
+                          value: total,
+                          icon: "check-circle-outline",
+                          tint: "rgba(76,175,80,0.12)",
+                          iconColor: "#4CAF50",
+                        },
+                      ].map((stat, index) => (
+                        <View
+                          key={stat.label}
+                          style={[
+                            styles.statItem,
+                            index < 2 && styles.statItemSpacing,
+                          ]}
+                        >
+                          <View
+                            style={[
+                              styles.statIconWrapper,
+                              { backgroundColor: stat.tint },
+                            ]}
+                          >
+                            <MaterialCommunityIcons
+                              name={stat.icon as keyof typeof MaterialCommunityIcons.glyphMap}
+                              size={26}
+                              color={stat.iconColor}
+                            />
+                          </View>
+                          <View style={styles.statValueRow}>
+                            <Text style={styles.statValue}>{stat.value}</Text>
+                            {stat.trend && (
+                              <MaterialCommunityIcons
+                                name={stat.trend.name}
+                                size={16}
+                                color={stat.trend.color}
+                                style={styles.trendIcon}
+                              />
+                            )}
+                          </View>
+                          <Text style={styles.statLabel}>{stat.label}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </Card.Content>
+                </Card>
+              ))}
+              <Text style={styles.updatedTimestamp}>Updated 5 min ago</Text>
             </View>
-          ))}
-        </View>
-      )}
-      {habits.length === 0 ? (
-        <View>
-          <Text>No Habits yet. Add your first Habit</Text>
-        </View>
-      ) : (
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          style={styles.container}
-        >
-          {rankedHabits.map(({ habit, streak, bestStreak, total }) => (
-            <Card
-              key={habit.$id}
-              style={[
-                styles.card,
-                rankedHabits[0].habit.$id === habit.$id && styles.firstCard,
-              ]}
-            >
-              <Card.Content>
-                <Text variant="titleMedium" style={styles.habitTitle}>
-                  {habit.title}
-                </Text>
-                <Text style={styles.habitDescription}>{habit.description}</Text>
-                <View style={styles.statsRow}>
-                  <View style={styles.statBadge}>
-                    <Text style={styles.statBadgeText}>🔥 {streak}</Text>
-                    <Text style={styles.statBadgeLabel}>Curent</Text>
-                  </View>
-                  <View style={styles.statBadgeGold}>
-                    <Text style={styles.statBadgeText}>🏆 {bestStreak}</Text>
-                    <Text style={styles.statBadgeLabel}>Best</Text>
-                  </View>
-                  <View style={styles.statBadgeGreen}>
-                    <Text style={styles.statBadgeText}>✅ {total}</Text>
-                    <Text style={styles.statBadgeLabel}>Total</Text>
-                  </View>
-                </View>
-              </Card.Content>
-            </Card>
-          ))}
-        </ScrollView>
-      )}
-    </View>
+          </ScrollView>
+        ) : (
+          <View style={styles.emptyStateWrapper}>
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyIconWrapper}>
+                <Text style={styles.emptyIcon}>🔥</Text>
+              </View>
+              <Text style={styles.emptyTitle}>No streaks yet</Text>
+              <Text style={styles.emptySubtitle}>
+                Build habits daily to start earning streaks!
+              </Text>
+            </View>
+          </View>
+        )}
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    padding: 16,
+    backgroundColor: "#FAF9FF",
+  },
+  content: {
+    flex: 1,
+    backgroundColor: "#FAF9FF",
+    paddingTop: 16,
+    paddingHorizontal: 20,
+  },
+  header: {
+    paddingBottom: 8,
+  },
+  subtitle: {
+    fontSize: 13,
+    color: "#8F95B2",
+    marginTop: 6,
+  },
+  scrollArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 32,
+  },
+  listInner: {
+    paddingTop: 24,
+    gap: 24,
   },
   title: {
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontWeight: "700",
+    fontSize: 24,
+    color: "#1F1F33",
   },
   card: {
-    marginBottom: 18,
-    borderRadius: 18,
+    marginBottom: 22,
+    borderRadius: 22,
     backgroundColor: "#fff",
     elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: "rgba(0,0,0,0.15)",
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
-    shadowRadius: 8,
+    shadowRadius: 10,
     borderWidth: 1,
-    borderColor: "#f0f0f0",
+    borderColor: "#F5F2FF",
   },
 
   firstCard: {
-    borderWidth: 2,
-    borderColor: "#7c4dff",
+    borderWidth: 1.5,
+    borderColor: "#B697FF",
+    shadowColor: "rgba(108,71,255,0.35)",
+    shadowOpacity: 0.16,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
   },
   habitTitle: {
     fontWeight: "bold",
@@ -259,93 +377,85 @@ const styles = StyleSheet.create({
   statsRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 8,
-    marginBottom: 12,
+    marginTop: 12,
+    marginBottom: 14,
   },
-  statBadge: {
-    backgroundColor: "#fff3e0",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  statItem: {
+    flex: 1,
     alignItems: "center",
-    minWidth: 60,
+    paddingVertical: 12,
+    paddingHorizontal: 10,
+    borderRadius: 16,
+    backgroundColor: "#F9F8FF",
   },
-  statBadgeGold: {
-    backgroundColor: "#fffde7",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  statItemSpacing: {
+    marginRight: 12,
+  },
+  statIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
-    minWidth: 60,
+    justifyContent: "center",
   },
-  statBadgeGreen: {
-    backgroundColor: "#e8f5e9",
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+  statValueRow: {
+    flexDirection: "row",
     alignItems: "center",
-    minWidth: 60,
+    gap: 4,
+    marginTop: 4,
   },
-  statBadgeText: {
-    fontWeight: "bold",
-    fontSize: 15,
-    color: "#22223b",
+  statValue: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#1F1F33",
   },
-  statBadgeLabel: {
-    fontSize: 11,
-    color: "#888",
+  statLabel: {
+    fontSize: 12,
+    color: "#7E8097",
     marginTop: 2,
-    fontWeight: 500,
+  },
+  trendIcon: {
+    marginTop: 0,
   },
   rankingContainer: {
-    marginBottom: 24,
+    marginBottom: 8,
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: 18,
+    paddingVertical: 18,
+    paddingHorizontal: 16,
     elevation: 2,
-    shadowColor: "#000",
+    shadowColor: "rgba(0,0,0,0.12)",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
     shadowRadius: 8,
   },
   rankingTitle: {
-    fontWeight: "bold",
+    fontWeight: "700",
     fontSize: 18,
     marginBottom: 12,
-    color: "#7c4dff",
+    color: "#6C47FF",
     letterSpacing: 0.5,
   },
   rankingRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
-    paddingBottom: 8,
+    paddingVertical: 12,
+    gap: 12,
+    minHeight: 56,
   },
-  rankingBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  rankingIconWrapper: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 10,
-    backgroundColor: "#e0e0e0",
   },
-  badge1: {
-    backgroundColor: "#ffd700",
+  rankingIcon: {
+    fontSize: 20,
+    lineHeight: 24,
   },
-  badge2: {
-    backgroundColor: "#c0c0c0",
-  },
-  badge3: {
-    backgroundColor: "#cd7f32",
-  },
-
-  rankingBadgeText: {
-    fontWeight: "bold",
-    color: "#fff",
-    fontSize: 15,
+  rankingInfo: {
+    flex: 1,
   },
   rankingHabit: {
     flex: 1,
@@ -353,9 +463,68 @@ const styles = StyleSheet.create({
     color: "#333",
     fontWeight: 600,
   },
+  rankingSmallLabel: {
+    fontSize: 12,
+    color: "#9C9EB5",
+    marginTop: 4,
+  },
   rankingStreak: {
     fontSize: 14,
     color: "#7c4dff",
     fontWeight: "bold",
+    minWidth: 40,
+    textAlign: "right",
+  },
+  rankingDivider: {
+    height: 1,
+    backgroundColor: "#EAEAEA",
+    marginVertical: 14,
+    marginLeft: 48,
+  },
+  updatedTimestamp: {
+    textAlign: "center",
+    color: "#A0A3B8",
+    fontSize: 12,
+    marginTop: 6,
+  },
+  emptyStateWrapper: {
+    flex: 1,
+    paddingTop: 48,
+  },
+  emptyStateContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 16,
+  },
+  emptyIconWrapper: {
+    width: 104,
+    height: 104,
+    borderRadius: 52,
+    backgroundColor: "#E9E8FF",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#6C47FF",
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 6,
+    marginBottom: 16,
+  },
+  emptyIcon: {
+    fontSize: 40,
+    color: "#6C47FF",
+  },
+  emptyTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#1F1F33",
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: "#8E8EA9",
+    textAlign: "center",
   },
 });
